@@ -73,6 +73,25 @@ async function handleRequest(request: Request) {
     // Add unshortened url
     response.url = unshortenedUrl
 
+    // Normalize relative metadata URLs against the final scraped page URL
+    const metadataBaseUrl = unshortenedUrl || url
+    for (const property of ['image', 'logo', 'video'] as const) {
+      if (typeof response[property] === 'string' && response[property]) {
+        response[property] = new URL(
+          response[property] as string,
+          metadataBaseUrl
+        ).toString()
+      }
+    }
+
+    if (Array.isArray(response.feeds)) {
+      response.feeds = response.feeds.map((feed) =>
+        typeof feed === 'string'
+          ? new URL(feed, metadataBaseUrl).toString()
+          : feed
+      )
+    }
+
     // Add url type
     response.urlType = linkType(url, false)
 
