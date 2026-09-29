@@ -6,6 +6,7 @@ import { linkType } from './link-type'
 import Scraper from './scraper'
 import { TidyURL } from 'tidy-url'
 import { scraperRules } from './scraper-rules'
+import { parseJsonLd } from './parse-jsonld'
 
 addEventListener('fetch', (event: FetchEvent) => {
   event.respondWith(handleRequest(event.request))
@@ -23,7 +24,7 @@ interface JSONObject {
   [k: string]: JSONValue
 }
 
-export type ScrapeResponse = string | string[] | JSONObject
+export type ScrapeResponse = JSONValue
 
 async function handleRequest(request: Request) {
   const searchParams = new URL(request.url).searchParams
@@ -77,7 +78,7 @@ async function handleRequest(request: Request) {
 
     // Parse JSON-LD
     if (response?.jsonld) {
-      response.jsonld = JSON.parse(response.jsonld as string)
+      response.jsonld = parseJsonLd(response.jsonld as string)
     }
   } catch (error) {
     return generateErrorJSONResponse(error, url)
